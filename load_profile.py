@@ -11,11 +11,8 @@ params = {'legend.fontsize': 'x-large',
          'ytick.labelsize':'x-large'}
 pylab.rcParams.update(params)
 
-import os
-os.sys.path.append("Z:\Code")
-os.sys.path
 
-from RoycePython import afm
+import afm
 
 def del_nan(Z): #get rid of the nan data points
     for m in np.arange(Z.shape[0]):
@@ -123,11 +120,11 @@ def profile_load():
     plt.imshow(Z)
     plt.show()
 
-    start_x = input("Start from x0 = ")
-    start_y = input("Start from x0 = ")
-    cut_len = input("Cut length = ")
+    start_x = int(input("Start from x0 = "))
+    start_y = int(input("Start from y0 = "))
+    cut_len = int(input("Cut length = "))
 
-    X,Y,Z = level_cut(X,Y,Z, start_x, start_y, cut_len)
+    X,Y,Z = level_cut(X,Y,Z, start_x, start_y, cut_len,0)
     xc,yc = center(X,Y,Z)
     X,Y,Z = tailor(X-xc,Y-yc,Z)
     N_sample = Z.shape[0]
@@ -171,8 +168,6 @@ def profile_load():
 
     ZM_A = np.pad(Z, ((N1,N_span-N1-N_sample),(N1,N_span-N1-N_sample)), 'edge') #lens side
     ZM_B = np.pad(Z1, ((N1,N_span-N1-N_sample),(N1,N_span-N1-N_sample)), 'edge') #backside
-    
-
 
     return ZM_A,ZM_B
 
