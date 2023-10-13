@@ -8,13 +8,13 @@ def slow_surf(lx,ly,lz):
     rho, c11, c33, c44, c12, c13, c14= (2650, 86.6e9, 106.4e9, 58.0e9, 6.7e9, 12.4e9, 17.8e9) #For quartz
     c66 = (c11-c12)/2
     #==========Quartz (triagonal) (SiC Hexangonal, c14=0)===============
-    gamma = np.matrix([[c11*lx**2+c66*ly**2+c44*lz**2+2*c14*ly*lz,(c12+c66)*lx*ly+2*c14*lx*lz,(c13+c44)*lx*lz+2*c14*lx*ly],\
-                        [(c12+c66)*lx*ly+2*c14*lx*lz,c66*lx**2+c11*ly**2+c44*lz**2-2*c14*ly*lz,(c13+c44)*ly*lz+c14*(lx**2-ly**2)],\
+    gamma = np.matrix([[c11*lx**2+c66*ly**2+c44*lz**2+2*c14*ly*lz,(c12+c66)*lx*ly+2*c14*lx*lz,(c13+c44)*lx*lz+2*c14*lx*ly],
+                        [(c12+c66)*lx*ly+2*c14*lx*lz,c66*lx**2+c11*ly**2+c44*lz**2-2*c14*ly*lz,(c13+c44)*ly*lz+c14*(lx**2-ly**2)],
                         [(c13+c44)*lx*lz+2*c14*lx*ly,(c13+c44)*ly*lz+c14*(lx**2-ly**2),c44*(lx**2+ly**2)+c33*lz**2]])
     w,v = np.linalg.eig(gamma)
     vinv = np.sqrt(rho/w) #1/velocity
     temp_l = abs(np.matrix([lx,ly,lz]) @ np.asmatrix(v)) #distinguish longitudinal from others
-    vl_inv = sum(vinv*np.asarray(temp_l >= temp_l.max())) #longitudinal mode's speed
+    vl_inv = np.max(vinv*np.asarray(temp_l >= temp_l.max())) #longitudinal mode's speed
     return vl_inv
 
 
@@ -41,6 +41,7 @@ def disp_cal(which_cut): #phonon wavelength, refractive index, density, stiffnes
         for m in np.arange(N_phi):
             for n in np.arange(N_theta):
                 v_inv[m,n] = slow_surf(LX[m,n],LY[m,n],LZ[m,n]) 
+        
         vx_inv, vy_inv, vz_inv = v_inv*(LX, LY, LZ)
 
     elif which_cut == 'x':
@@ -77,15 +78,15 @@ def disp_cal(which_cut): #phonon wavelength, refractive index, density, stiffnes
     print("The anisotropy-parameter is %.3f.\n"%P_aniso)
     print("Initial parameters are", p_init,"\nOptimized parameters are", popt)
 
-    VZ_inv_fit = slow_fit(xdata, *popt).reshape(v_inv.shape)
+    vz_inv_fit = slow_fit(xdata, *popt).reshape(v_inv.shape)
 
     fig, axs = plt.subplots(1,2,figsize=(12,5))
-    axs[0].contourf(VX_inv*1e4, VY_inv*1e4, VZ_inv*1e4)
+    axs[0].contourf(vx_inv*1e4, vy_inv*1e4, vz_inv*1e4)
     axs[0].set_xlabel(r'$k_x/\omega (10^{-4}s/m)$')
     axs[0].set_ylabel(r'$k_y/\omega (10^{-4}s/m)$')
     axs[0].set_title('Christoffel solution')
 
-    axs[1].contourf(VX_inv*1e4, VY_inv*1e4, VZ_inv_fit*1e4)
+    axs[1].contourf(vx_inv*1e4, vy_inv*1e4, vz_inv_fit*1e4)
     axs[1].set_xlabel(r'$k_x/\omega (10^{-4}s/m)$')
     axs[1].set_title('Fitted surface')
     plt.show()
