@@ -1,6 +1,10 @@
+#This function calculates the phonon anisotropy of material. 
+#The material density and stiffness tensor need to be added manually. (thinking of building the material database)
+#Input is the crystal cut.
+#Output is the fitted parameter of the slowness surface. 
+
 import numpy as np
 import matplotlib.pyplot as plt
-from numpy import linalg 
 from scipy.optimize import curve_fit
 
 
@@ -14,7 +18,7 @@ def slow_surf(lx,ly,lz):
     w,v = np.linalg.eig(gamma)
     vinv = np.sqrt(rho/w) #1/velocity
     temp_l = abs(np.matrix([lx,ly,lz]) @ np.asmatrix(v)) #distinguish longitudinal from others
-    vl_inv = np.max(vinv*np.asarray(temp_l >= temp_l.max())) #longitudinal mode's speed
+    vl_inv = np.sum(vinv*np.asarray(temp_l >= temp_l.max())) #longitudinal mode's speed
     return vl_inv
 
 
@@ -63,7 +67,7 @@ def disp_cal(which_cut): #phonon wavelength, refractive index, density, stiffnes
         vy_inv, vz_inv, vx_inv = v_inv*(LX, LY, LZ)
 
     else: 
-        print("Input Error! Propagating axis: x or y or z?")
+        np.error("Input Error! Propagating axis: x or y or z?")
 
     #return vx_inv, vy_inv, vz_inv
     xdata = np.vstack((vx_inv.ravel(),vy_inv.ravel())).T
