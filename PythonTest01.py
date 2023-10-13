@@ -1,22 +1,13 @@
-# calculate the area and circumference of a circle from its radius
+import numpy as np
+import matplotlib.pyplot as plt
 
-import math
-import pylab
+print("Hello")
+print("A change has been made!")
 
-IniNum = int(raw_input("Your trial number:"))
-aPlot = []
-#aPlotIndex = 0
-while IniNum != 1:
-    aPlot.append(IniNum)
-    if IniNum%2 == 0:
-        IniNum /= 2
-    else:
-        IniNum = IniNum * 3 + 1
-else:
-    aPlot.append(IniNum)
+x = np.linspace(0,10,100)
+y = 1/(5**2-x**2-1j*2*x)
 
-print aPlot
-print len(aPlot)
-pylab.plot(aPlot,'r')
-pylab.show()
+plt.figure()
+plt.plot(x,np.imag(y))
+plt.show()
 
