@@ -13,6 +13,22 @@ pylab.rcParams.update(params)
 
 import afm
 
+
+
+def load_file(fn):
+    if fn.split('.')[-1] == 'ibw':
+        X,Y,Z = afm.ibwread(fn)
+    elif fn.split('.')[-1] == 'datx':
+        X,Y,Z = afm.datxread(fn)
+    elif fn.split('.')[-1] == 'xyz':
+        X,Y,Z = afm.xyzread(fn)
+    elif fn.split('.')[-1] == 'csv':
+        X,Y,Z = afm.gwydread(fn)
+    else: 
+        print('Unknow file detected!')    
+    print("Finished!")
+    return X,Y,Z
+
 def del_nan(Z): #get rid of the nan data points
     for m in np.arange(Z.shape[0]):
         for n in np.arange(Z.shape[1]):
@@ -24,7 +40,7 @@ def del_nan(Z): #get rid of the nan data points
 
 
 def level_cut(X,Y,Z, start_x,start_y,len_cut, convex): #for phononic resonators, convexity = 1
-    Num1 = 10
+    Num1 = 50
     pos1 = (Num1,Num1)
     pos2 = (-Num1,Num1)
     pos3 = (Num1,-Num1)
@@ -39,7 +55,7 @@ def level_cut(X,Y,Z, start_x,start_y,len_cut, convex): #for phononic resonators,
     elif convex == 0:
         Z1 = Z - genplane(X,Y,P1,P3,P4)
     else:
-        np.error("Give the right convexity!")
+        print("Give the right convexity!")
 
     X1 = X[start_y:start_y+len_cut, start_x:start_x+len_cut]
     Y1 = Y[start_y:start_y+len_cut, start_x:start_x+len_cut]
@@ -64,89 +80,50 @@ def center(X,Y,Z): #center the profile
     Y_temp = Y*(Z<=Z.min())
     xc = np.sum(X_temp)/np.sum(X_temp!=0)
     yc = np.sum(Y_temp)/np.sum(Y_temp!=0)
-
-    plt.figure()
-    plt.contourf((X-xc)*1e6, (Y-yc)*1e6, Z*1e6)
-    plt.axvline(x=0,linestyle='-.',color='y')
-    plt.axhline(y=0,linestyle='-.',color='y')
-    plt.xlabel('x (um)')
-    plt.ylabel('y (um)')
-    plt.colorbar(label='z(um)')
-    plt.show()
     return xc,yc
 
 
 def trim_zeros_2d(X,mask): #require both X & Y are centered, output are suqare matrices with even rank, centered at the minimum point
-    #r = min(abs(x_cut[0]-xc), abs(x_cut[-1]-xc),abs(x_cut[0]-yc),abs(x_cut[-1]-yc))  
-    #mask = (abs(X)<r) * (abs(Y)<r) #a square mask
     mask_x = np.all(mask==0,1) #find all-zero rows
     mask_y = np.all(mask==0,0) #find all-zero cols
     X1 = np.delete(np.delete(X,mask_x,0),mask_y,1)
-    '''
-    Y = np.delete(np.delete(Y,mask_x,0),mask_y,0)
-    Z = np.delete(np.delete(Z,mask_x,0),mask_y,0)
-
-    xdiff = np.diff(1*(abs(X[0,:])<r)).tolist() #list.index() doesn't work for array
-    x1 = xdiff.index(1)+1
-    x2 = xdiff.index(-1)+1
-    ydiff = np.diff(1*(abs(Y[:,0])<r)).tolist()
-    y1 = ydiff.index(1)+1
-    y2 = ydiff.index(-1)+1
-    print("The tailored the matrix has %d rows and %d columns" % (x2-x1+1, y2-y1+1))
-    N_sample = min(x2-x1, y2-y1)
-    if N_sample%2 == 1:
-        N_sample-=1
-
-    Z1 = Z[y1:y1+N_sample, x1:x1+N_sample]
-    Z2 = Z1 - Z1.min()
-    X1 = X[y1:y1+N_sample, x1:x1+N_sample]
-    Y1 = Y[y1:y1+N_sample, x1:x1+N_sample]
-    '''
     return X1
 
-def load_file(fn):
-    if fn.split('.')[-1] == 'ibw':
-        X,Y,Z = afm.ibwread(fn)
-    elif fn.split('.')[-1] == 'datx':
-        X,Y,Z = afm.datxread(fn)
-    elif fn.split('.')[-1] == 'xyz':
-        X,Y,Z = afm.xyzread(fn)
-    elif fn.split('.')[-1] == 'csv':
-        X,Y,Z = afm.gwydread(fn)
-    else: 
-        np.error('Unknow file detected!')    
-    print("Finished!")
-    return X,Y,Z
 
 def profile_load():
     print("Loading convex surface profile...")
     fn = r"Z:\Data\Royce\Yale Facilities\Zygo\20230609_BC005_BC004_BC001C_xcut\BC004\Lens00_FOV0p4mm_Stitch3x3.datx"
     X,Y,Z = load_file(fn)
-
+    Z = del_nan(Z)
+    '''
     plt.figure()
-    plt.imshow(Z)
+    plt.imshow((Z-Z.min())*1e9)
+    plt.colorbar(label='z(nm)')
     plt.show()
+    '''
+    start_x = 200#int(input("Start from x0 = "))
+    start_y = 200#int(input("Start from y0 = "))
+    cut_len = 2400#int(input("Cut length = "))
 
-    start_x = int(input("Start from x0 = "))
-    start_y = int(input("Start from y0 = "))
-    cut_len = int(input("Cut length = "))
+    X,Y,Z = level_cut(X,Y,Z, start_x, start_y, cut_len, 1)
 
-    X,Y,Z = level_cut(X,Y,Z, start_x, start_y, cut_len,0)
-    xc,yc = center(X,Y,Z)
-    X = X-xc
+    xc,yc = center(X,Y,Z) #need to set the center manually if cannot find the minimum point
+    X = X-xc 
     Y = Y-yc
+
     r = min(abs(X[0,0]),abs(X[-1,-1]),abs(Y[0,0]),abs(Y[-1,-1])) #boundary of the effective area
     mask = (abs(X)<r) * (abs(Y)<r)
-    #=======tailored domem surface========
+
+    #=======tailor dome surface========
     XA = trim_zeros_2d(X,mask)
     YA = trim_zeros_2d(Y,mask)
     ZA = trim_zeros_2d(Z,mask)
 
-    N_sample = np.max(ZA.shape[0],ZA.shape[1])
+    N_sample = max(ZA.shape[0],ZA.shape[1])
     xy_reso = X[1,1]-X[0,0]   #lateral resolution
-
+    '''
     plt.figure()
-    plt.contourf(X*1e6, Y*1e6, Z*1e9, cmap=cm.coolwarm)
+    plt.contourf(XA*1e6, YA*1e6, ZA*1e9, cmap=cm.coolwarm)
     plt.axvline(x=0,linestyle='-.',color='y')
     plt.axhline(y=0,linestyle='-.',color='y')
     plt.xlabel('x (um)')
@@ -154,18 +131,18 @@ def profile_load():
     plt.title(fn.split('\\')[-1])
     plt.colorbar(label='z(nm)')
     plt.show()
+    '''
 
-
-    #========flat surface============
+    #==============flat surface================
     print("Load flat surface profile...")
     fn1 = r"Z:\Data\Royce\Yale Facilities\Zygo\20230609_BC005_BC004_BC001C_xcut\BC005\Flat01_SideB_FOV0p4mm_Stitch3x3.datx"
     X,Y,Z = load_file(fn1)
-
-    if xy_reso != X[1,1]-X[0,0]:
-        np.error("Backside resolution is different from dome side!")
+    
+    if abs(X[1,1]-X[0,0]-xy_reso) > 1e-15:
+        print("Backside resolution: %.2fum, dome side: %.2fum."%((X[1,1]-X[0,0])*1e6, xy_reso*1e6))
     else: 
-        X1,Y1,ZB = level_cut(X,Y,Z,0,0,N_sample,0)
-
+        X1,Y1,ZB = level_cut(X,Y,Z,0,0,N_sample,1)
+    '''
     plt.figure()
     plt.contourf(X1*1e6, Y1*1e6, ZB*1e9, cmap=cm.coolwarm)
     plt.xlabel('x (um)')
@@ -173,7 +150,7 @@ def profile_load():
     plt.title('$\sigma$=%.2fnm'%(np.std(ZB)*1e9))
     plt.colorbar(label='z(nm)')
     plt.show()
-
+    '''
     #========extend the simulation area==============
     m = 0
     while 2**m <= N_sample:
@@ -185,6 +162,3 @@ def profile_load():
     ZM_B = np.pad(ZB, ((N1,N_span-N1-ZB.shape[0]),(N1,N_span-N1-ZB.shape[1])), 'edge') #backside
 
     return ZM_A,ZM_B,xy_reso,r
-
-
-
