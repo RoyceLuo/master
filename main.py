@@ -1,4 +1,4 @@
 import phonon_disp as pd
-import load_profile as lp
+import z_profile as zp
 #pd.disp_cal('z')
-lp.profile_load()
+zp.profile_load()
