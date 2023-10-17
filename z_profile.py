@@ -14,6 +14,7 @@ pylab.rcParams.update(params)
 import afm
 
 
+#==============define functions==============
 
 def load_file(fn):
     if fn.split('.')[-1] == 'ibw':
@@ -62,8 +63,14 @@ def level_cut(X,Y,Z, start_x,start_y,len_cut, convex): #for phononic resonators,
     Z2 = Z1[start_y:start_y+len_cut, start_x:start_x+len_cut]
     return X1,Y1,Z2
 
-def down_sample(Z, factor):
-    return 1 
+def down_sample(ZM, Sfactor):
+    N_sample1 = ZM.shape[0]//Sfactor
+    ZM1 = np.zeros((N_sample1, N_sample1))
+
+    for m in np.arange(N_sample1):
+        for n in np.arange(N_sample1):
+            ZM1[m,n] = ZM[m*Sfactor,n*Sfactor]
+    return ZM1
 
 def genplane(X,Y,p1,p2,p3):
     v1 = p2-p1
@@ -90,20 +97,20 @@ def trim_zeros_2d(X,mask): #require both X & Y are centered, output are suqare m
     return X1
 
 
-def profile_load():
+def profile_load(fn,fn1):
     print("Loading convex surface profile...")
-    fn = r"Z:\Data\Royce\Yale Facilities\Zygo\20230609_BC005_BC004_BC001C_xcut\BC004\Lens00_FOV0p4mm_Stitch3x3.datx"
+    #fn = r"Z:\Data\Royce\Yale Facilities\Zygo\20230609_BC005_BC004_BC001C_xcut\BC004\Lens00_FOV0p4mm_Stitch3x3.datx"
     X,Y,Z = load_file(fn)
     Z = del_nan(Z)
-    '''
+    
     plt.figure()
     plt.imshow((Z-Z.min())*1e9)
     plt.colorbar(label='z(nm)')
     plt.show()
-    '''
-    start_x = 200#int(input("Start from x0 = "))
-    start_y = 200#int(input("Start from y0 = "))
-    cut_len = 2400#int(input("Cut length = "))
+    
+    start_x = int(input("Start from x0 = "))
+    start_y = int(input("Start from y0 = "))
+    cut_len = int(input("Cut length = "))
 
     X,Y,Z = level_cut(X,Y,Z, start_x, start_y, cut_len, 1)
 
@@ -135,7 +142,7 @@ def profile_load():
 
     #==============flat surface================
     print("Load flat surface profile...")
-    fn1 = r"Z:\Data\Royce\Yale Facilities\Zygo\20230609_BC005_BC004_BC001C_xcut\BC005\Flat01_SideB_FOV0p4mm_Stitch3x3.datx"
+    #fn1 = r"Z:\Data\Royce\Yale Facilities\Zygo\20230609_BC005_BC004_BC001C_xcut\BC005\Flat01_SideB_FOV0p4mm_Stitch3x3.datx"
     X,Y,Z = load_file(fn1)
     
     if abs(X[1,1]-X[0,0]-xy_reso) > 1e-15:
