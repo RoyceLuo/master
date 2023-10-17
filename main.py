@@ -43,7 +43,7 @@ mirra_phi = np.exp(+2j*k0*ZA) #Flat side phase
 mirrb_phi = np.exp(+2j*k0*ZB) #Dome side phase
 
 print("Mirror phase generated. Start optimizing beam waist...")
-w0_init = 31e-6
+w0_init = 51e-6
 w0 = es.opt_M00(w0_init,k0, X,Y, prop_phi,mirra_phi,mirrb_phi)
 print("Optimized beam waist is %.2fum"%(w0*1e6))
 
