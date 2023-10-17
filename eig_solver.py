@@ -17,10 +17,12 @@ def HG_Fun(X,Y,k,w0,z,m,n): #ROW is r/w, zeta is z/z0
 
 def opt_M00(w0_init,k,X,Y, prop_phi,mirra_phi,mirrb_phi):
     xy_reso = X[1,1]-X[0,0]
+    print("resolution %.2fum"%(xy_reso*1e6))
     def single_prop(w):
         u0 = HG_Fun(X,Y,k,w,0,0,0) #initialize beam amplitude
         u = beamp(beamp(u0, prop_phi)*mirrb_phi, prop_phi)*mirra_phi
         overl = 1 - abs(xy_reso**2 * np.sum(np.conj(u0)*u))**2
+        print("Beam waist %.5fum, diffraction loss %.9f." % (w*1e6, overl))
         return overl
     
     w0_bounds = ((10e-6, 100e-6),)

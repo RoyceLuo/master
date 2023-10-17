@@ -14,7 +14,7 @@ L = 0.5e-3 #Crystal thickness
 #===========load mirror profiles=================
 fn1 = r"Z:\Data\Royce\Yale Facilities\Zygo\20230609_BC005_BC004_BC001C_xcut\BC004\Lens00_FOV0p4mm_Stitch3x3.datx"
 fn2 = r"Z:\Data\Royce\Yale Facilities\Zygo\20230609_BC005_BC004_BC001C_xcut\BC005\Flat01_SideB_FOV0p4mm_Stitch3x3.datx"
-ZA,ZB,xy_reso,r = zp.profile_load(fn1,fn2)
+ZB,ZA,xy_reso,r = zp.profile_load(fn1,fn2) #ZB dome, ZA flat
 ZA, xy_reso = zp.down_sample(ZA,xy_reso,2)
 ZB, xy_reso = zp.down_sample(ZB,xy_reso,2)
 
@@ -23,8 +23,9 @@ print("Mirror size %d by %d. Leteral resolution is %.2fum"%(N_span,N_span, xy_re
 #=========phonon dispersion=======================
 popt = pd.disp_cal('z') #get fitted parameters of slowness surface
 P_aniso = -1/(2*popt[0]*popt[1])
-fB = ph_lamda/popt[0] #Brillouin frequency
+fB = 1/ph_lamda/popt[0] #Brillouin frequency
 FSR = 1/popt[0]/2/L
+
 #=======construct propagation coordinates===========
 #real space
 x_zp = np.fft.fftshift(np.fft.fftfreq(N_span,d = 1/(xy_reso*N_span)))
@@ -43,7 +44,7 @@ mirra_phi = np.exp(+2j*k0*ZA) #Flat side phase
 mirrb_phi = np.exp(+2j*k0*ZB) #Dome side phase
 
 print("Mirror phase generated. Start optimizing beam waist...")
-w0_init = 51e-6
+w0_init = 31e-6
 w0 = es.opt_M00(w0_init,k0, X,Y, prop_phi,mirra_phi,mirrb_phi)
 print("Optimized beam waist is %.2fum"%(w0*1e6))
 

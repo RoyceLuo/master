@@ -61,7 +61,8 @@ def level_cut(X,Y,Z, start_x,start_y,len_cut, convex): #for phononic resonators,
     X1 = X[start_y:start_y+len_cut, start_x:start_x+len_cut]
     Y1 = Y[start_y:start_y+len_cut, start_x:start_x+len_cut]
     Z2 = Z1[start_y:start_y+len_cut, start_x:start_x+len_cut]
-    return X1,Y1,Z2
+
+    return X1, Y1, Z2
 
 def down_sample(ZM,reso,Sfactor):
     N_sample1 = ZM.shape[0]//Sfactor
@@ -108,9 +109,9 @@ def profile_load(fn,fn1):
     plt.colorbar(label='z(nm)')
     plt.show()
     '''
-    start_x = 250#int(input("Start from x0 = "))
-    start_y = 250#int(input("Start from y0 = "))
-    cut_len = 2000#int(input("Cut length = "))
+    start_x = 0 #int(input("Start from x0 = "))
+    start_y = 0 #int(input("Start from y0 = "))
+    cut_len = -1#int(input("Cut length = "))
 
     X,Y,Z = level_cut(X,Y,Z, start_x, start_y, cut_len, 1)
 
@@ -128,7 +129,7 @@ def profile_load(fn,fn1):
 
     N_sample = max(ZA.shape[0],ZA.shape[1])
     xy_reso = X[1,1]-X[0,0]   #lateral resolution
-    '''
+
     plt.figure()
     plt.contourf(XA*1e6, YA*1e6, ZA*1e9, cmap=cm.coolwarm)
     plt.axvline(x=0,linestyle='-.',color='y')
@@ -138,7 +139,7 @@ def profile_load(fn,fn1):
     plt.title(fn.split('\\')[-1])
     plt.colorbar(label='z(nm)')
     plt.show()
-    '''
+
 
     #==============flat surface================
     print("Load flat surface profile...")
@@ -148,16 +149,18 @@ def profile_load(fn,fn1):
     if abs(X[1,1]-X[0,0]-xy_reso) > 1e-15:
         print("Backside resolution: %.2fum, dome side: %.2fum."%((X[1,1]-X[0,0])*1e6, xy_reso*1e6))
     else: 
-        X1,Y1,ZB = level_cut(X,Y,Z,0,0,N_sample,1)
-    '''
+        X1,Y1,Z1 = level_cut(X,Y,Z,0,0,N_sample,1)
+
+    XB,YB,ZB = level_cut(X1,Y1,Z1, 0,0,-1, 1)
+
     plt.figure()
-    plt.contourf(X1*1e6, Y1*1e6, ZB*1e9, cmap=cm.coolwarm)
+    plt.contourf(XB*1e6, YB*1e6, ZB*1e9, cmap=cm.coolwarm)
     plt.xlabel('x (um)')
     plt.ylabel('y (um)')
     plt.title('$\sigma$=%.2fnm'%(np.std(ZB)*1e9))
     plt.colorbar(label='z(nm)')
     plt.show()
-    '''
+
     #========extend the simulation area==============
     m = 0
     while 2**m <= N_sample:
@@ -167,5 +170,5 @@ def profile_load(fn,fn1):
 
     ZM_A = np.pad(ZA, ((N1,N_span-N1-ZA.shape[0]),(N1,N_span-N1-ZA.shape[1])), 'edge') #lens side
     ZM_B = np.pad(ZB, ((N1,N_span-N1-ZB.shape[0]),(N1,N_span-N1-ZB.shape[1])), 'edge') #backside
-
-    return ZM_A,ZM_B,xy_reso,r
+    
+    return ZM_A, ZM_B, xy_reso, r
