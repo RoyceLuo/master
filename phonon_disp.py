@@ -29,7 +29,7 @@ def slow_fit(xdata,S,C,E):
 #def slow_fit(xdata,S,A,B,C,D,E):
     #    return S + A*xdata[:,0] + B*xdata[:,1] + C*xdata[:,0]**2 + D*xdata[:,0]*xdata[:,1] + E*xdata[:,1]**2  
 
-def disp_cal(which_cut): #phonon wavelength, refractive index, density, stiffness tensor, prop direction
+def disp_cal(which_cut): #input direction of propagation, output fitted parameter of the slowness surface
     N_theta = 10 #theta range 
     N_phi = 100 #phi range
     theta = np.linspace(0,1e-2,N_theta) #the diverging angle is lambda/pi/w0 ~ 4e-3 when w0 ~ 40um. 
@@ -83,7 +83,7 @@ def disp_cal(which_cut): #phonon wavelength, refractive index, density, stiffnes
     print("Initial parameters are", p_init,"\nOptimized parameters are", popt)
 
     vz_inv_fit = slow_fit(xdata, *popt).reshape(v_inv.shape)
-
+    '''
     fig, axs = plt.subplots(1,2,figsize=(12,5))
     axs[0].contourf(vx_inv*1e4, vy_inv*1e4, vz_inv*1e4)
     axs[0].set_xlabel(r'$k_x/\omega (10^{-4}s/m)$')
@@ -94,7 +94,7 @@ def disp_cal(which_cut): #phonon wavelength, refractive index, density, stiffnes
     axs[1].set_xlabel(r'$k_x/\omega (10^{-4}s/m)$')
     axs[1].set_title('Fitted surface')
     plt.show()
-
+    '''
     return popt
 
 

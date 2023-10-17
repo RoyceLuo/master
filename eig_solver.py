@@ -15,28 +15,27 @@ def HG_Fun(X,Y,k,w0,z,m,n): #ROW is r/w, zeta is z/z0
     #total_area = xy_reso**2 * sum(abs(WaveFun)**2)
     return WaveFun #/np.sqrt(total_area)
 
-def opt_M00(w0_init,k,X,Y,prop_phi,mirra_phi,mirrb_phi):
+def opt_M00(w0_init,k,X,Y, prop_phi,mirra_phi,mirrb_phi):
     xy_reso = X[1,1]-X[0,0]
     def single_prop(w):
         u0 = HG_Fun(X,Y,k,w,0,0,0) #initialize beam amplitude
         u = beamp(beamp(u0, prop_phi)*mirrb_phi, prop_phi)*mirra_phi
-        overl = 1 - abs(xy_reso**2 * sum(np.conj(u0)*u))**2
+        overl = 1 - abs(xy_reso**2 * np.sum(np.conj(u0)*u))**2
         return overl
     
     w0_bounds = ((10e-6, 100e-6),)
     res = minimize(single_prop, w0_init, method = 'L-BFGS-B', bounds = w0_bounds)
-    w0 = res[0]
-    return w0
+    return res.x[0]
 
-def beamp(u, phi, win_fun):
+def beamp(u, phi):
     u_fft = np.fft.ifft2(np.fft.ifftshift(u), norm="ortho")
     u_fft_1 = u_fft*phi
-    u_fft_prop = np.fft.fftshift(np.fft.fft2(u_fft_1, norm="ortho"))*win_fun
+    u_fft_prop = np.fft.fftshift(np.fft.fft2(u_fft_1, norm="ortho"))
     return u_fft_prop
 
 
 
-def solve(mode_num,w0,k,FSR, X,Y,prop_phi,mirra_phi,mirrb_phi):
+def solve(mode_num,w0,k,FSR, X,Y,win_fun,prop_phi,mirra_phi,mirrb_phi):
     xy_reso = X[1,1] - X[0,0]
     N_span = mirrb_phi.shape[0]
 
@@ -69,7 +68,7 @@ def solve(mode_num,w0,k,FSR, X,Y,prop_phi,mirra_phi,mirrb_phi):
             print(s)
         u0temp = HG_Fun(X,Y,k,w0,0,n_list[s],m_list[s])
         HerFun[s,:] = np.ravel(u0temp)
-        HerFun_refl[s,:]= np.ravel(beamp(beamp(u0temp, prop_phi)*mirrb_phi, prop_phi)*mirra_phi)
+        HerFun_refl[s,:]= np.ravel(beamp(beamp(u0temp, prop_phi)*mirrb_phi*win_fun, prop_phi)*mirra_phi*win_fun)
 
     #=================generate the M matrix========================
     M = xy_reso**2 * HerFun_refl @ np.conj(HerFun).T
@@ -82,7 +81,7 @@ def solve(mode_num,w0,k,FSR, X,Y,prop_phi,mirra_phi,mirrb_phi):
     for m in np.arange(len(eigf)): ### np.angle() reaturns (-math.pi,math.pi]
         if eigf[m] < 0:
             eigf[m] += FSR
-    
+
     #==============reorder it in terms of their frequencies=================
     sort_ind = np.argsort(eigf)
     eigf = eigf[sort_ind] 
@@ -101,7 +100,7 @@ def solve(mode_num,w0,k,FSR, X,Y,prop_phi,mirra_phi,mirrb_phi):
 
     return eigf1,eig_F1,v1
 
-def sol_conv(mode_num,w0,k,FSR, X,Y,prop_phi,mirra_phi,mirrb_phi):
+def sol_conv(mode_num,w0,k,FSR, X,Y,win_fun, prop_phi,mirra_phi,mirrb_phi):
     xy_reso = X[1,1] - X[0,0]
     N_span = mirrb_phi.shape[0]
     eigF0 = [] #eigenfrequency of the fundamental mode
@@ -123,7 +122,7 @@ def sol_conv(mode_num,w0,k,FSR, X,Y,prop_phi,mirra_phi,mirrb_phi):
     for s in np.arange(len(ltemp)):
         u0temp = HG_Fun(X,Y,k,w0,0,n_list[s],m_list[s])
         HerFun[s,:] = np.ravel(u0temp)
-        HerFun_refl[s,:]= np.ravel(beamp(beamp(u0temp, prop_phi)*mirrb_phi, prop_phi)*mirra_phi)
+        HerFun_refl[s,:]= np.ravel(beamp(beamp(u0temp, prop_phi)*mirrb_phi*win_fun, prop_phi)*mirra_phi*win_fun)
 
     M = xy_reso**2 * HerFun_refl @ np.conj(HerFun).T
     print("M size is %d by %d."%(M.shape[0],M.shape[1]))
