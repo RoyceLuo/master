@@ -28,7 +28,6 @@ def load_file(fn, Sfactor):
     else: 
         print('Unknow file detected!')    
     print("Finished!")
-
     X = down_sample(X, Sfactor)
     Y = down_sample(Y, Sfactor)
     Z = down_sample(Z, Sfactor)
@@ -69,12 +68,17 @@ def level_cut(X,Y,Z, start_x,start_y,len_cut, convex): #for phononic resonators,
     return X1, Y1, Z2
 
 def down_sample(ZM,Sfactor):
-    N_sample1 = ZM.shape[0]//Sfactor
-    ZM1 = np.zeros((N_sample1, N_sample1))
-    #reso1 = reso*Sfactor
-    for m in np.arange(N_sample1):
-        for n in np.arange(N_sample1):
-            ZM1[m,n] = ZM[m*Sfactor,n*Sfactor]
+    if not isinstance(Sfactor, int):
+        print("Downsampling factor has to be integer!")
+    elif Sfactor == 1:
+        ZM1 = ZM
+    else:
+        N_sample1 = ZM.shape[0]//Sfactor
+        ZM1 = np.zeros((N_sample1, N_sample1))
+        #reso1 = reso*Sfactor
+        for m in np.arange(N_sample1):
+            for n in np.arange(N_sample1):
+                ZM1[m,n] = ZM[m*Sfactor,n*Sfactor]
     return ZM1 #,reso1
 
 def genplane(X,Y,p1,p2,p3):
