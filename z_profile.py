@@ -16,7 +16,7 @@ import afm
 
 #==============define functions==============
 
-def load_file(fn):
+def load_file(fn, Sfactor):
     if fn.split('.')[-1] == 'ibw':
         X,Y,Z = afm.ibwread(fn)
     elif fn.split('.')[-1] == 'datx':
@@ -28,6 +28,10 @@ def load_file(fn):
     else: 
         print('Unknow file detected!')    
     print("Finished!")
+
+    X = down_sample(X, Sfactor)
+    Y = down_sample(Y, Sfactor)
+    Z = down_sample(Z, Sfactor)
     return X,Y,Z
 
 def del_nan(Z): #get rid of the nan data points
@@ -41,7 +45,7 @@ def del_nan(Z): #get rid of the nan data points
 
 
 def level_cut(X,Y,Z, start_x,start_y,len_cut, convex): #for phononic resonators, convexity = 1
-    Num1 = 50
+    Num1 = 10
     pos1 = (Num1,Num1)
     pos2 = (-Num1,Num1)
     pos3 = (Num1,-Num1)
@@ -64,14 +68,14 @@ def level_cut(X,Y,Z, start_x,start_y,len_cut, convex): #for phononic resonators,
 
     return X1, Y1, Z2
 
-def down_sample(ZM,reso,Sfactor):
+def down_sample(ZM,Sfactor):
     N_sample1 = ZM.shape[0]//Sfactor
     ZM1 = np.zeros((N_sample1, N_sample1))
-    reso1 = reso*Sfactor
+    #reso1 = reso*Sfactor
     for m in np.arange(N_sample1):
         for n in np.arange(N_sample1):
             ZM1[m,n] = ZM[m*Sfactor,n*Sfactor]
-    return ZM1,reso1
+    return ZM1 #,reso1
 
 def genplane(X,Y,p1,p2,p3):
     v1 = p2-p1
@@ -98,11 +102,12 @@ def trim_zeros_2d(X,mask): #require both X & Y are centered, output are suqare m
     return X1
 
 
-def profile_load(fn,fn1):
+def profile_load(fn,fn1, Sfactor):
     print("Loading convex surface profile...")
     #fn = r"Z:\Data\Royce\Yale Facilities\Zygo\20230609_BC005_BC004_BC001C_xcut\BC004\Lens00_FOV0p4mm_Stitch3x3.datx"
-    X,Y,Z = load_file(fn)
+    X,Y,Z = load_file(fn, Sfactor)
     Z = del_nan(Z)
+
     '''
     plt.figure()
     plt.imshow((Z-Z.min())*1e9)
@@ -144,8 +149,8 @@ def profile_load(fn,fn1):
     #==============flat surface================
     print("Load flat surface profile...")
     #fn1 = r"Z:\Data\Royce\Yale Facilities\Zygo\20230609_BC005_BC004_BC001C_xcut\BC005\Flat01_SideB_FOV0p4mm_Stitch3x3.datx"
-    X,Y,Z = load_file(fn1)
-    
+    X,Y,Z = load_file(fn1,Sfactor)
+
     if abs(X[1,1]-X[0,0]-xy_reso) > 1e-15:
         print("Backside resolution: %.2fum, dome side: %.2fum."%((X[1,1]-X[0,0])*1e6, xy_reso*1e6))
     else: 

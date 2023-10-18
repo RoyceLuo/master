@@ -80,7 +80,7 @@ def disp_cal(which_cut): #input direction of propagation, output fitted paramete
     #P_aniso = -1/(2*popt[0]*popt[3]) #### If fit kz vs kx and ky, then P_aniso=-1/2CS0
     P_aniso = -1/(2*popt[0]*popt[1])
     print("The anisotropy-parameter is %.3f.\n"%P_aniso)
-    print("Initial parameters are", p_init,"\nOptimized parameters are", popt)
+    print("Initial parameters are\n", p_init,"\nOptimized parameters are\n", popt)
 
     vz_inv_fit = slow_fit(xdata, *popt).reshape(v_inv.shape)
     '''
