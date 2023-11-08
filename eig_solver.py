@@ -104,9 +104,15 @@ def sol_conv(mode_num,w0,k,FSR, X,Y,win_fun, prop_phi,mirra_phi,mirrb_phi):
         eigv0.append(v1.max()) #|a0|^2 of the 0th mode
         print("#m+n=%d, finesse=%d, |a0|^2=%.3f"%(mode_num-1,eigF0[-1],eigv0[-1]))
     eigF_data = np.vstack((mode_num_list-1, np.array(eigF0), np.array(eigv0))).T
-    print("Convergence test finished!")
+    print("Convergence test done!")
     
     return eigF_data
 
-def sim_ring():
-    return 1
+def sim_ring(u0,xy_reso,rounds,win_fun, prop_phi,mirra_phi,mirrb_phi):
+    round_num = np.arange(rounds)
+    u_iter = u0 #launch the eigenmode directly
+    P = np.zeros(rounds) #power decay
+    for i in round_num:
+        u_iter = beamp(beamp(u_iter, prop_phi)*mirrb_phi*win_fun,prop_phi)*mirra_phi*win_fun
+        P[i] = sum(abs(u_iter)**2)*xy_reso**2*win_fun
+    return P

@@ -14,9 +14,9 @@ ph_lamda = 1.55e-6/2/1.54 #phonon wavelength
 k0 = 2*math.pi/ph_lamda
 L = 0.5e-3 #Crystal thickness
 #===========load mirror profiles=================
-fp = "Z:\Data\Royce\Yale Facilities\Zygo\20230609_BC005_BC004_BC001C_xcut\BC004\\"
-fn1 = fp + "Lens00_FOV0p4mm_Stitch3x3.datx"
-fn2 = fp + "Flat01_SideB_FOV0p4mm_Stitch3x3.datx"
+fp = r"Z:\Data\Royce\Yale Facilities\Zygo\20230609_BC005_BC004_BC001C_xcut\BC004\\"
+fn1 = fp + r"Lens00_FOV0p4mm_Stitch3x3.datx"
+fn2 = fp + r"Flat01_SideB_FOV0p4mm_Stitch3x3.datx"
 ZB,ZA,xy_reso,r = zp.profile_load(fn1,fn2,4) #ZB dome, ZA flat, downsample factor
 #ZA, xy_reso = zp.down_sample(ZA,xy_reso,4)
 #ZB, xy_reso = zp.down_sample(ZB,xy_reso,4)
@@ -71,19 +71,34 @@ plt.title('Beam inside the window')
 plt.colorbar()
 plt.show()
 
+
 #===============convergence test==================
 mode_conv = 25
-w0_sim = 25e-6 #w0
-conv_test = es.sol_conv(mode_conv,w0_sim,k0,FSR, X,Y,win_fun, prop_phi,mirra_phi,mirrb_phi)
+w0_list = np.array([20,25,35,40,45,50])*1e-6
+F_list = []
+for m in np.arange(len(w0_list)):
+    w0_sim = w0_list[m]
+    conv_test = es.sol_conv(mode_conv,w0_sim,k0,FSR, X,Y,win_fun, prop_phi,mirra_phi,mirrb_phi)
+    F_list.append(conv_test[:,1])
+#plt.plot(conv_test[:,0],conv_test[:,1])
+F_list = np.vstack((conv_test[:,0],np.array(F_list))).T
 
 fig = plt.figure()
 ax = fig.gca()
-plt.plot(conv_test[:,0],conv_test[:,1])
+for m in np.arange(len(w0_list)):
+    plt.plot(F_list[:,0], F_list[:,m+1], label='w0=%dum'%(w0_list[m]*1e6))
 ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 plt.xlabel('m + n')
 plt.ylabel('Finesse')
-plt.title('sim w0=%.2fum'%(w0*1e6))
+plt.title('sim w0=%.2fum'%(w0_sim*1e6))
+plt.legend()
+plt.tight_layout()
+plt.savefig(fp + r"Convergence_test2_20231018\Lens00_r%dum_simw0%dum.pdf")
 plt.show()
+
+np.savetxt(fp + r"Convergence_test2_20231018\Lens00_r%dum_simw0%dum.csv"\
+%(r*1e6,w0*1e6), F_list, delimiter=',', fmt='%.2f', header='Mode#(m+n), Finesse\n')
+
 
 '''
 #===================main solver part=====================

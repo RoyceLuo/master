@@ -158,15 +158,22 @@ def profile_load(fn,fn1, Sfactor):
     if abs(X[1,1]-X[0,0]-xy_reso) > 1e-15:
         print("Backside resolution: %.2fum, dome side: %.2fum."%((X[1,1]-X[0,0])*1e6, xy_reso*1e6))
     else: 
-        X1,Y1,Z1 = level_cut(X,Y,Z,0,0,N_sample,1)
+        XB,YB,ZB = level_cut(X,Y,Z,0,0,N_sample,1)
 
-    XB,YB,ZB = level_cut(X1,Y1,Z1, 0,0,-1, 1)
+    #XB,YB,ZB = level_cut(X1,Y1,Z1, 0,0,-1, 1)
+    r_rms = 20e-6
+    mask_rms = (abs(XA)<r_rms) * (abs(YA)<r_rms)
+    XB1 = trim_zeros_2d(XA,mask_rms)
+    YB1 = trim_zeros_2d(YA,mask_rms)
+    ZB1 = trim_zeros_2d(ZB,mask_rms)
+    XB2,YB2,ZB2 = level_cut(XB1,YB1,ZB1,0,0,-1,1)
+    ZB_rms = np.std(ZB2)
 
     plt.figure()
-    plt.contourf(XB*1e6, YB*1e6, ZB*1e9, cmap=cm.coolwarm)
+    plt.contourf(XB2*1e6, YB2*1e6, (ZB2-ZB2.mean())*1e9, cmap=cm.coolwarm)
     plt.xlabel('x (um)')
     plt.ylabel('y (um)')
-    plt.title('$\sigma$=%.2fnm'%(np.std(ZB)*1e9))
+    plt.title('Flat side center %d x %dum, $\sigma$=%.2fnm'%(r_rms*2e6,r_rms*2e6,ZB_rms*1e9))
     plt.colorbar(label='z(nm)')
     plt.show()
 
