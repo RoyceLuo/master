@@ -8,8 +8,8 @@ export them in 3 matrices, all in the unit of m.
 
 import numpy as np
 import h5py
-import igor.igorpy as igorp
-import igor.binarywave as igorb
+#import igor.igorpy as igorp
+#import igor.binarywave as igorb
 
 def gwydread(path): #Read .csv or .txt file from Gwyddion 
     zz = np.loadtxt(path, delimiter='\t', skiprows=4)
@@ -24,7 +24,7 @@ def gwydread(path): #Read .csv or .txt file from Gwyddion
     xx,yy = np.meshgrid(xs,ys) 
     return xx,yy,zz
     
-
+'''
 def ibwread(path): #Read .ibw file from Asylum AFM
     data = igorb.load(path)
     xy_reso = data['wave']['wave_header']['sfA'][0]
@@ -35,7 +35,7 @@ def ibwread(path): #Read .ibw file from Asylum AFM
     xx,yy = np.meshgrid(xs,ys)  
     return xx,yy,zz
 
-
+'''
 
 def xyzread(path): #Read .xyz file from Zygo
     f = open(path, 'r')
