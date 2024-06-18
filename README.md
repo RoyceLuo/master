@@ -6,4 +6,4 @@ From this line on, I will add something different from what I wrote two years ag
 
 I don't know. I just type something here. 
 
-Let's try it!
+generate a github token
